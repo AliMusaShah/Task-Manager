@@ -12,6 +12,15 @@
   --font-mono: var(--font-geist-mono);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-task-accent: var(--task-accent);
+  --color-task-accent-foreground: var(--task-accent-foreground);
+  --color-task-accent-soft: var(--task-accent-soft);
+  --color-status-open: var(--status-open);
+  --color-status-open-foreground: var(--status-open-foreground);
+  --color-status-in-progress: var(--status-in-progress);
+  --color-status-in-progress-foreground: var(--status-in-progress-foreground);
+  --color-status-done: var(--status-done);
+  --color-status-done-foreground: var(--status-done-foreground);
   --color-brand-secondary: var(--brand-secondary);
   --color-brand-tertiary: var(--brand-tertiary);
   --color-surface-bright: var(--surface-bright);
@@ -149,6 +158,17 @@
   --text-black: #181d18;
   --heading: #21272a;
   --board: #f9f9f9;
+
+  /* Task Manager: indigo accent + status colors */
+  --task-accent: #4f46e5;
+  --task-accent-foreground: #ffffff;
+  --task-accent-soft: #eef2ff;
+  --status-open: #f1f3f5;
+  --status-open-foreground: #495057;
+  --status-in-progress: #fef3c7;
+  --status-in-progress-foreground: #92400e;
+  --status-done: #dcfce7;
+  --status-done-foreground: #166534;
 
   /* Student dashboard */
   --stat-score: rgb(189 45 48 / 68%);
