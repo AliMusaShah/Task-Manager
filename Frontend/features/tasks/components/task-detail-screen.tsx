@@ -9,33 +9,57 @@ import { cn } from "cn"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 
-import { useTaskStore } from "../store/task-store"
+import { getTaskErrorMessage, isTaskNotFoundError } from "../api/tasks-api"
+import { useDeleteTask, useTask, useUpdateTask } from "../hooks/use-tasks"
+import type { TaskStatus } from "../types/task-types"
 import { DeleteTaskDialog } from "./delete-task-dialog"
 import { ScreenContainer } from "./screen-container"
 import { ScreenHeader } from "./screen-header"
 import { TaskNotFound } from "./task-not-found"
 import { TaskStatusBadge } from "./task-status-badge"
 import { TaskStatusSelector } from "./task-status-selector"
+import { TaskRequestError } from "./task-request-error"
+import { TaskScreenFallback } from "./task-screen-fallback"
 
 function TaskDetailScreen({ taskId }: { taskId: string }) {
   const router = useRouter()
-  const task = useTaskStore((state) =>
-    state.tasks.find((item) => item.id === taskId)
-  )
-  const setTaskStatus = useTaskStore((state) => state.setTaskStatus)
-  const deleteTask = useTaskStore((state) => state.deleteTask)
+  const { data: task, error, isPending, refetch } = useTask(taskId)
+  const updateTask = useUpdateTask()
+  const deleteTask = useDeleteTask()
 
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [isDeleted, setIsDeleted] = useState(false)
 
-  if (isDeleted) return null
+  if (isPending) return <TaskScreenFallback />
+  if (isTaskNotFoundError(error)) return <TaskNotFound />
+  if (error) {
+    return (
+      <ScreenContainer>
+        <ScreenHeader title="Task details" backHref="/" />
+        <TaskRequestError
+          title="Unable to load task"
+          error={error}
+          onRetry={() => void refetch()}
+        />
+      </ScreenContainer>
+    )
+  }
   if (!task) return <TaskNotFound />
 
-  function handleDelete() {
-    setConfirmOpen(false)
-    setIsDeleted(true)
-    deleteTask(taskId)
-    router.replace("/")
+  async function handleDelete() {
+    try {
+      await deleteTask.mutateAsync(taskId)
+      router.replace("/")
+    } catch {
+      // The dialog renders the mutation error and keeps the task visible.
+    }
+  }
+
+  async function handleStatusChange(status: TaskStatus) {
+    try {
+      await updateTask.mutateAsync({ id: taskId, values: { status } })
+    } catch {
+      // The selector keeps the server value; the error is shown below it.
+    }
   }
 
   return (
@@ -64,8 +88,14 @@ function TaskDetailScreen({ taskId }: { taskId: string }) {
           <TaskStatusSelector
             label="Change status"
             value={task.status}
-            onChange={(status) => setTaskStatus(task.id, status)}
+            onChange={(status) => void handleStatusChange(status)}
+            disabled={updateTask.isPending || deleteTask.isPending}
           />
+          {updateTask.error ? (
+            <p role="alert" className="text-sm text-destructive">
+              {getTaskErrorMessage(updateTask.error)}
+            </p>
+          ) : null}
         </Card>
 
         <div className="mt-auto grid grid-cols-2 gap-3 pt-4">
@@ -92,6 +122,10 @@ function TaskDetailScreen({ taskId }: { taskId: string }) {
         onOpenChange={setConfirmOpen}
         onConfirm={handleDelete}
         taskTitle={task.title}
+        isDeleting={deleteTask.isPending}
+        errorMessage={
+          deleteTask.error ? getTaskErrorMessage(deleteTask.error) : undefined
+        }
       />
     </ScreenContainer>
   )

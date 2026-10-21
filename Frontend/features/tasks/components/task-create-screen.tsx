@@ -2,14 +2,14 @@
 
 import { useRouter } from "next/navigation"
 
-import { useTaskStore } from "../store/task-store"
+import { useCreateTask } from "../hooks/use-tasks"
 import { ScreenContainer } from "./screen-container"
 import { ScreenHeader } from "./screen-header"
 import { TaskForm } from "./task-form"
 
 function TaskCreateScreen() {
   const router = useRouter()
-  const addTask = useTaskStore((state) => state.addTask)
+  const createTask = useCreateTask()
 
   return (
     <ScreenContainer>
@@ -17,10 +17,11 @@ function TaskCreateScreen() {
       <TaskForm
         mode="create"
         cancelHref="/"
-        onSubmit={(values) => {
-          addTask(values)
-          router.push("/")
+        onSubmit={async (values) => {
+          const task = await createTask.mutateAsync(values)
+          router.push(`/tasks/${task.id}`)
         }}
+        isSubmitting={createTask.isPending}
       />
     </ScreenContainer>
   )

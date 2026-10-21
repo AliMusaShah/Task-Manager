@@ -11,12 +11,14 @@ type TaskStatusSelectorProps = {
   value: TaskStatus
   onChange: (status: TaskStatus) => void
   label?: string
+  disabled?: boolean
 }
 
 function TaskStatusSelector({
   value,
   onChange,
   label = "Status",
+  disabled = false,
 }: TaskStatusSelectorProps) {
   const id = useId()
   const labelId = `${id}-label`
@@ -42,11 +44,12 @@ function TaskStatusSelector({
                 value={status}
                 checked={value === status}
                 onChange={() => onChange(status)}
+                disabled={disabled}
                 className="peer sr-only"
               />
               <span
                 className={cn(
-                  "flex h-11 items-center justify-center rounded-card border border-border bg-background px-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted peer-checked:font-semibold peer-focus-visible:ring-3 peer-focus-visible:ring-task-accent/40",
+                  "flex h-11 items-center justify-center rounded-card border border-border bg-background px-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted peer-disabled:cursor-not-allowed peer-disabled:opacity-50 peer-checked:font-semibold peer-focus-visible:ring-3 peer-focus-visible:ring-task-accent/40",
                   config.selectedClassName
                 )}
               >

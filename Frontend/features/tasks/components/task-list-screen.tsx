@@ -7,16 +7,17 @@ import { Plus } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
 
 import { TASK_STATUS_CONFIG } from "../constants/task-status"
-import { useTaskStore } from "../store/task-store"
+import { useTasks } from "../hooks/use-tasks"
 import type { TaskFilter } from "../types/task-types"
 import { ScreenContainer } from "./screen-container"
 import { TaskCard } from "./task-card"
 import { TaskEmptyState } from "./task-empty-state"
 import { TaskFilterBar } from "./task-filter-bar"
+import { TaskRequestError } from "./task-request-error"
 
 function TaskListScreen() {
-  const tasks = useTaskStore((state) => state.tasks)
   const [filter, setFilter] = useState<TaskFilter>("ALL")
+  const { data: tasks = [], error, isPending, refetch } = useTasks()
 
   const visibleTasks =
     filter === "ALL" ? tasks : tasks.filter((task) => task.status === filter)
@@ -36,7 +37,16 @@ function TaskListScreen() {
         </p>
       </header>
 
-      {hasTasks ? (
+      {isPending ? (
+        <div
+          role="status"
+          className="flex flex-1 items-center justify-center px-5 py-12 text-sm text-muted-foreground"
+        >
+          Loading tasks…
+        </div>
+      ) : error ? (
+        <TaskRequestError error={error} onRetry={() => void refetch()} />
+      ) : hasTasks ? (
         <>
           <div className="px-5 pb-5">
             <TaskFilterBar value={filter} onChange={setFilter} />

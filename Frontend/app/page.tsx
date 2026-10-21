@@ -1,5 +1,11 @@
-import { TaskListScreen } from "@/features/tasks"
+import { Suspense } from "react"
+
+import { TaskListScreen, TaskScreenFallback } from "@/features/tasks"
 
 export default function HomePage() {
-  return <TaskListScreen />
+  return (
+    <Suspense fallback={<TaskScreenFallback />}>
+      <TaskListScreen />
+    </Suspense>
+  )
 }

@@ -10,12 +10,14 @@ import type { TaskFormValues } from "../types/task-types"
 import { TaskField } from "./task-field"
 import { fieldControlClassName } from "./task-field-styles"
 import { TaskStatusSelector } from "./task-status-selector"
+import { getTaskErrorMessage } from "../api/tasks-api"
 
 type TaskFormProps = {
   mode: "create" | "edit"
   initialValues?: TaskFormValues
   cancelHref: string
-  onSubmit: (values: TaskFormValues) => void
+  onSubmit: (values: TaskFormValues) => Promise<void>
+  isSubmitting?: boolean
 }
 
 const EMPTY_VALUES: TaskFormValues = {
@@ -29,6 +31,7 @@ function TaskForm({
   initialValues = EMPTY_VALUES,
   cancelHref,
   onSubmit,
+  isSubmitting = false,
 }: TaskFormProps) {
   const id = useId()
   const titleId = `${id}-title`
@@ -37,8 +40,9 @@ function TaskForm({
 
   const [values, setValues] = useState<TaskFormValues>(initialValues)
   const [titleError, setTitleError] = useState<string | undefined>()
+  const [submitError, setSubmitError] = useState<string | undefined>()
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     if (!values.title.trim()) {
@@ -47,7 +51,13 @@ function TaskForm({
       return
     }
 
-    onSubmit(values)
+    setSubmitError(undefined)
+
+    try {
+      await onSubmit(values)
+    } catch (error) {
+      setSubmitError(getTaskErrorMessage(error))
+    }
   }
 
   return (
@@ -98,7 +108,14 @@ function TaskForm({
           onChange={(status) =>
             setValues((current) => ({ ...current, status }))
           }
+          disabled={isSubmitting}
         />
+      ) : null}
+
+      {submitError ? (
+        <p role="alert" className="text-sm text-destructive">
+          {submitError}
+        </p>
       ) : null}
 
       <div className="mt-auto grid grid-cols-2 gap-3 pt-4">
@@ -108,8 +125,19 @@ function TaskForm({
         >
           Cancel
         </Link>
-        <Button type="submit" variant="accent" size="form">
-          {mode === "create" ? "Create" : "Save changes"}
+        <Button
+          type="submit"
+          variant="accent"
+          size="form"
+          disabled={isSubmitting}
+        >
+          {isSubmitting
+            ? mode === "create"
+              ? "Creating…"
+              : "Saving…"
+            : mode === "create"
+              ? "Create"
+              : "Save changes"}
         </Button>
       </div>
     </form>

@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button"
 type DeleteTaskDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: () => void
+  onConfirm: () => Promise<void>
   taskTitle: string
+  isDeleting?: boolean
+  errorMessage?: string
 }
 
 function DeleteTaskDialog({
@@ -17,6 +19,8 @@ function DeleteTaskDialog({
   onOpenChange,
   onConfirm,
   taskTitle,
+  isDeleting = false,
+  errorMessage,
 }: DeleteTaskDialogProps) {
   return (
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
@@ -39,14 +43,24 @@ function DeleteTaskDialog({
               </AlertDialog.Description>
             </div>
           </div>
+          {errorMessage ? (
+            <p role="alert" className="text-center text-sm text-destructive">
+              {errorMessage}
+            </p>
+          ) : null}
           <div className="grid grid-cols-2 gap-3">
             <AlertDialog.Close
-              render={<Button variant="outline" size="form" />}
+              render={<Button variant="outline" size="form" disabled={isDeleting} />}
             >
               Cancel
             </AlertDialog.Close>
-            <Button variant="danger" size="form" onClick={onConfirm}>
-              Delete
+            <Button
+              variant="danger"
+              size="form"
+              disabled={isDeleting}
+              onClick={() => void onConfirm()}
+            >
+              {isDeleting ? "Deleting…" : "Delete"}
             </Button>
           </div>
         </AlertDialog.Popup>
